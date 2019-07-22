@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using TRMDesktopUI.Helpers;
 using TRMDesktopUI.ViewModels;
 
 namespace TRMDesktopUI
@@ -17,6 +19,11 @@ namespace TRMDesktopUI
         public Bootstrapper()
         {
             Initialize();
+
+            ConventionManager.AddElementConvention<PasswordBox>(
+            PasswordBoxHelper.BoundPasswordProperty,
+            "Password",
+            "PasswordChanged");
         }
 
         //where the instantiation happens....where does the container know what to connect to what
@@ -27,7 +34,8 @@ namespace TRMDesktopUI
             //Singleton:create one instance of the class for the life of an application
             _container
                 .Singleton<IWindowManager, WindowManager>()      //ties the interface to the implementation
-                .Singleton<IEventAggregator, EventAggregator>();
+                .Singleton<IEventAggregator, EventAggregator>()
+                .Singleton<IAPIHelper, APIHelper>();
 
             //handle viewmodels to the views
             GetType().Assembly.GetTypes()    //get every type in the entire application
