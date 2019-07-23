@@ -38,7 +38,7 @@ namespace TRMDesktopUI.Helpers
                 new KeyValuePair<string,string>("password",password)
             });
 
-            using (HttpResponseMessage response = await ApiClient.PostAsync("", data))
+            using (HttpResponseMessage response = await ApiClient.PostAsync("/Token", data))
             {
                 if (response.IsSuccessStatusCode)
                 {
