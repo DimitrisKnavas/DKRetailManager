@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TRMDesktopUI.Models
+namespace TRMDesktopUILibrary.Models
 {
     public class AuthenticatedUser
     {
-        public string Acces_Token { get; set; }
+        public string Access_Token { get; set; }
         public string UserName { get; set; }
     }
 }
