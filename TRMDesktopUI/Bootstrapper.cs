@@ -31,7 +31,8 @@ namespace TRMDesktopUI
         //where the instantiation happens....where does the container know what to connect to what
         protected override void Configure()
         {
-            _container.Instance(_container); //_container holds an instance of itself to pass when a simplecontainer is asked
+            _container.Instance(_container)
+                .PerRequest<IProductEndpoint, ProductEndpoint>();//_container holds an instance of itself to pass when a simplecontainer is asked
 
             //Singleton:create one instance of the class for the life of an application
             _container

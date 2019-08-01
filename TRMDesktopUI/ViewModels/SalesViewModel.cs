@@ -5,14 +5,35 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TRMDesktopUILibrary.Api;
+using TRMDesktopUILibrary.Models;
 
 namespace TRMDesktopUI.ViewModels
 {
     public class SalesViewModel : Screen
     {
-        private BindingList<string> _products ;
+        private BindingList<ProductModel> _products ;
+        IProductEndpoint _productEndpoint;
 
-        public BindingList<string> Products
+
+        public SalesViewModel(IProductEndpoint productEndpoint)
+        {
+            _productEndpoint = productEndpoint;
+        }
+
+        protected override async void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+            await LoadProducts();
+        }
+
+        private async Task LoadProducts()
+        {
+            var productList = await _productEndpoint.GetAll();
+            Products = new BindingList<ProductModel>(productList);
+        }
+
+        public BindingList<ProductModel> Products
         {
             get { return _products; }
             set { _products = value;
@@ -20,13 +41,13 @@ namespace TRMDesktopUI.ViewModels
             }
         }
 
-        private BindingList<string> _cart;
+        private BindingList<ProductModel> _cart;
 
-        public BindingList<string> Cart
+        public BindingList<ProductModel> Cart
         {
             get { return _cart; }
             set { _cart = value;
-                NotifyOfPropertyChange(() => Products);
+                NotifyOfPropertyChange(() => Cart);
 
             }
         }
@@ -60,13 +81,13 @@ namespace TRMDesktopUI.ViewModels
 
 
 
-        private string _itemQuantity;
+        private int _itemQuantity;
 
-        public string ItemQuantity
+        public int ItemQuantity
         {
             get { return _itemQuantity; }
             set { _itemQuantity = value;
-                NotifyOfPropertyChange(() => Products);
+                NotifyOfPropertyChange(() => ItemQuantity);
                 }
         }
 
