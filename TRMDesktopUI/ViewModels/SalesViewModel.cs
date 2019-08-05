@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TRMDesktopUILibrary.Api;
+using TRMDesktopUILibrary.Helpers;
 using TRMDesktopUILibrary.Models;
 
 namespace TRMDesktopUI.ViewModels
@@ -14,11 +15,13 @@ namespace TRMDesktopUI.ViewModels
     {
         private BindingList<ProductModel> _products ;
         IProductEndpoint _productEndpoint;
+        IConfigHelper _configHelper;
 
 
-        public SalesViewModel(IProductEndpoint productEndpoint)
+        public SalesViewModel(IProductEndpoint productEndpoint, IConfigHelper configHelper)
         {
             _productEndpoint = productEndpoint;
+            _configHelper = configHelper;
         }
 
         protected override async void OnViewLoaded(object view)
@@ -68,32 +71,58 @@ namespace TRMDesktopUI.ViewModels
         {
             get
             {
-                decimal subTotal = 0;
-
-                foreach(var item in Cart)
-                {
-                    subTotal += (item.Product.RetailPrice * item.QuantityInCart);
-                }
-
-                return subTotal.ToString("C"); //passing the C convertes it to currency
+                return CalculateSubTotal().ToString("C"); //passing the C convertes it to currency (2 decimal points)
             }
             
+        }
+
+        private decimal CalculateSubTotal()
+        {
+            decimal subTotal = 0;
+
+            foreach (var item in Cart)
+            {
+                subTotal += (item.Product.RetailPrice * item.QuantityInCart);
+            }
+
+            return subTotal;
         }
 
         public string Tax
         {
             get
             {
-                return "$0.00";
+                return CalcucalateTax().ToString("C");
             }
 
+        }
+
+        private decimal CalcucalateTax()
+        {
+            decimal taxAmount = 0;
+            decimal taxRate = _configHelper.GetTaxRate()/100;
+
+            taxAmount = Cart
+                .Where(x => x.Product.IsTaxable)
+                .Sum(x => x.Product.RetailPrice * x.QuantityInCart * taxRate);
+            
+            //foreach (var item in Cart)
+            //{
+            //    if (item.Product.IsTaxable)
+            //    {
+            //        taxAmount += (item.Product.RetailPrice * item.QuantityInCart * taxRate);
+            //    }
+            //}
+
+            return taxAmount;
         }
 
         public string Total
         {
             get
             {
-                return "$0.00";
+                decimal total = CalculateSubTotal() + CalcucalateTax();
+                return total.ToString("C");
             }
 
         }
@@ -135,7 +164,9 @@ namespace TRMDesktopUI.ViewModels
             SelectedProduct.QuantityInStock -= ItemQuantity;
             ItemQuantity = 1;
             NotifyOfPropertyChange(() => SubTotal);
-            NotifyOfPropertyChange(() => existingItem.DisplayText);
+            NotifyOfPropertyChange(() => Tax);
+            NotifyOfPropertyChange(() => Total);
+            NotifyOfPropertyChange(() => CanCheckOut);
         }
 
         public bool CanAddToCart
@@ -157,7 +188,26 @@ namespace TRMDesktopUI.ViewModels
 
         public void RemoveFromCart()
         {
+            CartItemModel existingItem = Cart.FirstOrDefault(x => x.Product == SelectedProduct);
+
+            if (existingItem.QuantityInCart > 1)
+            {
+                existingItem.QuantityInCart -= ItemQuantity;
+                //HACK - There should be a better way of refreshing the cart display
+                Cart.Remove(existingItem);
+                Cart.Add(existingItem);
+            }
+            else
+            {
+                Cart.Remove(existingItem);
+            }
+
+            SelectedProduct.QuantityInStock += ItemQuantity;
+            ItemQuantity = 1;
             NotifyOfPropertyChange(() => SubTotal);
+            NotifyOfPropertyChange(() => Tax);
+            NotifyOfPropertyChange(() => Total);
+            NotifyOfPropertyChange(() => CanCheckOut);
         }
 
         public bool CanCheckOut
@@ -166,6 +216,10 @@ namespace TRMDesktopUI.ViewModels
             {
                 bool output = false;
                 //Make sure something is selected
+                if(Cart.Count > 0)
+                {
+                    output = true;
+                }
 
                 return output;
             }

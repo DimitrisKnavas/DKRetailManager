@@ -13,18 +13,19 @@ namespace TRMDesktopUI.ViewModels
         
         private IEventAggregator _events;
         private SalesViewModel _salesVM;
-        private SimpleContainer _container;
+        //private SimpleContainer _container;
 
-        public ShellViewModel(IEventAggregator events, SalesViewModel salesVM, SimpleContainer container)//constructor injection
+        public ShellViewModel(IEventAggregator events, SalesViewModel salesVM)//, SimpleContainer container)//constructor injection
         {
             _events = events;
             
             _salesVM = salesVM;
-            _container = container;
+            //_container = container;
 
             _events.Subscribe(this);
             
-            ActivateItem(_container.GetInstance<LoginViewModel>()); //Do this instead of "ActivateItem(_loginVM) so that every time I have a new instance without the previous user data 
+            ActivateItem(IoC.Get<LoginViewModel>()); //Do this instead of "ActivateItem(_loginVM) so that every time I have a new instance without the previous user data
+            //with Inversion of Control(caliburn micro) i don't have to pass an instance of container
         }
 
         public void Handle(LogOnEvent message)
