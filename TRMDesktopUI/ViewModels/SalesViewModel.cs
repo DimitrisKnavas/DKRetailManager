@@ -16,12 +16,13 @@ namespace TRMDesktopUI.ViewModels
         private BindingList<ProductModel> _products ;
         IProductEndpoint _productEndpoint;
         IConfigHelper _configHelper;
+        ISaleEndpoint _saleEndpoint;
 
-
-        public SalesViewModel(IProductEndpoint productEndpoint, IConfigHelper configHelper)
+        public SalesViewModel(IProductEndpoint productEndpoint, IConfigHelper configHelper, ISaleEndpoint saleEndpoint)
         {
             _productEndpoint = productEndpoint;
             _configHelper = configHelper;
+            _saleEndpoint = saleEndpoint;
         }
 
         protected override async void OnViewLoaded(object view)
@@ -54,6 +55,18 @@ namespace TRMDesktopUI.ViewModels
                   NotifyOfPropertyChange(() => CanAddToCart);
             }
         }
+
+        private CartItemModel _selectedProductToRemove;
+
+        public CartItemModel SelectedProductToRemove
+        {
+            get { return _selectedProductToRemove; }
+            set { _selectedProductToRemove = value;
+                  NotifyOfPropertyChange(() => SelectedProductToRemove);
+                  NotifyOfPropertyChange(() => CanCheckOut);
+                }
+        }
+
 
 
         private BindingList<CartItemModel> _cart = new BindingList<CartItemModel>();
@@ -188,19 +201,17 @@ namespace TRMDesktopUI.ViewModels
 
         public void RemoveFromCart()
         {
-            CartItemModel existingItem = Cart.FirstOrDefault(x => x.Product == SelectedProduct);
+            CartItemModel existingItem = Cart.FirstOrDefault(x => x.Product == SelectedProductToRemove.Product);
 
-            if (existingItem.QuantityInCart > 1)
+            
+            existingItem.QuantityInCart -= ItemQuantity;
+            //HACK - There should be a better way of refreshing the cart display
+            Cart.Remove(existingItem);
+            if(existingItem.QuantityInCart > 0)
             {
-                existingItem.QuantityInCart -= ItemQuantity;
-                //HACK - There should be a better way of refreshing the cart display
-                Cart.Remove(existingItem);
-                Cart.Add(existingItem);
+               Cart.Add(existingItem);
             }
-            else
-            {
-                Cart.Remove(existingItem);
-            }
+            
 
             SelectedProduct.QuantityInStock += ItemQuantity;
             ItemQuantity = 1;
@@ -226,9 +237,20 @@ namespace TRMDesktopUI.ViewModels
         }
 
 
-        public void CheckOut()
+        public async Task CheckOut()
         {
+            //Create a SaleModel and post to the API
+            SaleModel sale = new SaleModel();
+            foreach (var item in Cart)
+            {
+                sale.SaleDetails.Add(new SaleDetailModel
+                {
+                    ProductId = item.Product.Id,
+                    Quantity = item.QuantityInCart
+                });
+            }
 
+            await _saleEndpoint.PostSale(sale);
         }
 
 

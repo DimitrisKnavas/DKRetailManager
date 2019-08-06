@@ -33,7 +33,8 @@ namespace TRMDesktopUI
         protected override void Configure()
         {
             _container.Instance(_container)
-                .PerRequest<IProductEndpoint, ProductEndpoint>();//_container holds an instance of itself to pass when a simplecontainer is asked
+                .PerRequest<IProductEndpoint, ProductEndpoint>() //_container holds an instance of itself to pass when a simplecontainer is asked
+                .PerRequest<ISaleEndpoint, SaleEndpoint>();
 
             //Singleton:create one instance of the class for the life of an application
             _container
