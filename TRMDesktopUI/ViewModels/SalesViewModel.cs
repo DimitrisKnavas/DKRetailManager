@@ -70,6 +70,7 @@ namespace TRMDesktopUI.ViewModels
             set { _selectedProductToRemove = value;
                   NotifyOfPropertyChange(() => SelectedProductToRemove);
                   NotifyOfPropertyChange(() => CanCheckOut);
+                  NotifyOfPropertyChange(() => CanRemoveFromCart);
                 }
         }
 
@@ -203,6 +204,20 @@ namespace TRMDesktopUI.ViewModels
                 return output;
             }
         }
+
+        public bool CanRemoveFromCart
+        {
+            get
+            {
+                bool output = false;
+                if (SelectedProductToRemove != null)
+                {
+                    output = true;
+                }
+                return output;
+            }
+        }
+
 
 
         public void RemoveFromCart()
