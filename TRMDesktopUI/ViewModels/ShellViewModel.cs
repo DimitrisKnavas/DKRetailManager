@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using TRMDesktopUI.EventModels;
+using TRMDesktopUILibrary.Models;
 
 namespace TRMDesktopUI.ViewModels
 {
@@ -13,14 +14,18 @@ namespace TRMDesktopUI.ViewModels
         
         private IEventAggregator _events;
         private SalesViewModel _salesVM;
+        private ILoggedInUserModel _user;
         //private SimpleContainer _container;
 
-        public ShellViewModel(IEventAggregator events, SalesViewModel salesVM)//, SimpleContainer container)//constructor injection
+        public ShellViewModel(IEventAggregator events, ILoggedInUserModel user,
+            SalesViewModel salesVM)//, SimpleContainer container)//constructor injection
         {
             _events = events;
             
             _salesVM = salesVM;
             //_container = container;
+
+            _user = user;
 
             _events.Subscribe(this);
             
@@ -31,6 +36,34 @@ namespace TRMDesktopUI.ViewModels
         public void Handle(LogOnEvent message)
         {
             ActivateItem(_salesVM);
+            NotifyOfPropertyChange(() => IsLoggedIn);
+        }
+
+        public bool IsLoggedIn
+        {
+            get
+            {
+                bool output = false;
+
+                if(!string.IsNullOrWhiteSpace(_user.Token))
+                {
+                    output = true;
+                }
+
+                return output;
+            }
+        }
+
+        public void LogOut()
+        {
+            _user.LogOffUser();
+            ActivateItem(IoC.Get<LoginViewModel>());
+            NotifyOfPropertyChange(() => IsLoggedIn);
+        }
+
+        public void ExitApplication()
+        {
+            TryClose(); // Closes wpf,api still runs(tried this.ExitApplication but throws exception)
         }
     }
 }
