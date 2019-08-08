@@ -10,10 +10,10 @@ namespace TRMDataManagerLibrary.DataAccess
 {
     public class SaleData
     {
-        public void SaveSale(SaleModel saleInfo, string cashierId)
+        public void SaveSale(SaleModel saleInfo, string cashierId,List<SaleDetailDBModel> details)
         {
             //Start filling in the sale detail models we will save to the database
-            List<SaleDetailDBModel> details = new List<SaleDetailDBModel>();
+            
             ProductData products = new ProductData();
             var taxRate = ConfigHelper.GetTaxRate()/100;
 
@@ -39,6 +39,10 @@ namespace TRMDataManagerLibrary.DataAccess
                 {
                     detail.Tax = (detail.PurchasePrice * taxRate);
                 }
+
+                //update the products quantity in database
+                int refreshQuantity = productInfo.QuantityInStock - detail.Quantity;
+                products.UpdateProductQuantitity(detail.ProductId, refreshQuantity);
 
                 details.Add(detail);
             }
@@ -66,16 +70,10 @@ namespace TRMDataManagerLibrary.DataAccess
                 item.SaleId = sale.Id;
                 //Save the sale detail models
                 sql.SaveData("dbo.spSaleDetail_Insert", item, "TRMData");
+                
             }
 
         }
-        //public List<ProductModel> GetProducts()
-        //{
-        //    SqlDataAccess sql = new SqlDataAccess();
-
-        //    var output = sql.LoadData<ProductModel, dynamic>("dbo.spProduct_GetAll", new { }, "TRMData"); //new {} : anonymous empty class
-
-        //    return output;
-        //}
+        
     }
 }

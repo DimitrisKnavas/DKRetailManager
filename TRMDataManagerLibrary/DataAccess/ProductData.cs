@@ -27,5 +27,14 @@ namespace TRMDataManagerLibrary.DataAccess
 
             return output;
         }
+
+        public void UpdateProductQuantitity(int ProductId, int QuantityInStock)
+        {
+            SqlDataAccess sql = new SqlDataAccess();
+
+            sql.SaveData("dbo.spProduct_QuantityUpdate", new { ProductId, QuantityInStock }, "TRMData");
+            
+
+        }
     }
 }

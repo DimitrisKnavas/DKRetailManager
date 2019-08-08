@@ -68,10 +68,11 @@ namespace TRMDesktopUI.ViewModels
         {
             get { return _selectedProductToRemove; }
             set { _selectedProductToRemove = value;
-                  NotifyOfPropertyChange(() => SelectedProductToRemove);
+                  
                   NotifyOfPropertyChange(() => CanCheckOut);
                   NotifyOfPropertyChange(() => CanRemoveFromCart);
-                }
+                  NotifyOfPropertyChange(() => SelectedProductToRemove);
+            }
         }
 
 
@@ -233,8 +234,9 @@ namespace TRMDesktopUI.ViewModels
                 Cart.Add(existingItem);
             }
 
-
-            SelectedProduct.QuantityInStock += ItemQuantity;
+            ProductDisplayModel ProductInStock = Products.FirstOrDefault(x => x.Id == existingItem.Product.Id);
+            ProductInStock.QuantityInStock += ItemQuantity;
+            
             ItemQuantity = 1;
             NotifyOfPropertyChange(() => SubTotal);
             NotifyOfPropertyChange(() => Tax);

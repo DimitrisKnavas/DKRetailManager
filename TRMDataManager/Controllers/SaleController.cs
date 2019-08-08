@@ -16,9 +16,11 @@ namespace TRMDataManager.Controllers
         public void Post(SaleModel sale)
         {
             SaleData data = new SaleData();
+            List<SaleDetailDBModel> details = new List<SaleDetailDBModel>();
             string userId = RequestContext.Principal.Identity.GetUserId();
 
-            data.SaveSale(sale, userId);
+            data.SaveSale(sale, userId, details);
+
         }
     }
 }
