@@ -88,5 +88,14 @@ namespace TRMDesktopUILibrary.Api
                 }
             }
         }
+
+
+        //On GetLoggedInUserInfo we added the token to the api request header so we can make calls.
+        //But when we Log off we never clear that token..so there is a chance if we close the wpf that someone
+        //can get their hands on that token and make use of the api.All we have to do is clear the header again
+        public void LogOffUser()
+        {
+            _apiClient.DefaultRequestHeaders.Clear();
+        }
     }
 }
