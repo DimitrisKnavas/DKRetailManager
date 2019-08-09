@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace TRMDataManagerLibrary.Internal.DataAccess
 {
-    internal class SqlDataAccess  //internal class: can't be seen or used from anything outside the library. Nobody must talk directly to the database
+    internal class SqlDataAccess : IDisposable  //internal class: can't be seen or used from anything outside the library. Nobody must talk directly to the database
     {
         public string GetConnectionString(string name)
         {
@@ -41,5 +41,54 @@ namespace TRMDataManagerLibrary.Internal.DataAccess
                 
             }
         }
+
+        private IDbConnection _connection;
+        private IDbTransaction _transaction;
+
+        //Open connection/start transaction method
+        public void StartTransaction(string connectionStringName)
+        {
+            string connectionString = GetConnectionString(connectionStringName);
+            _connection = new SqlConnection(connectionString);
+            _connection.Open();
+            _transaction = _connection.BeginTransaction();
+        }
+
+        //Load using the transaction
+        public List<T> LoadDataInTransaction<T, U>(string storedProcedure, U parameters)
+        {
+                List<T> rows = _connection.Query<T>(storedProcedure, parameters,
+                    commandType: CommandType.StoredProcedure, transaction: _transaction).ToList();
+
+                return rows;
+        }
+
+        //Save using the transaction
+        public void SaveDataInTransaction<T>(string storedProcedure, T parameters)
+        {
+            _connection.Execute(storedProcedure, parameters,
+                commandType: CommandType.StoredProcedure, transaction: _transaction);
+        }
+
+        //Close connection/stop a successuful transaction method
+        public void CommitTransaction()
+        {
+            _transaction?.Commit();
+            _connection?.Close();
+        }
+
+        //Close connection/stop a failed transaction
+        public void RollBackTransaction()
+        {
+            _transaction?.Rollback(); //erases changes instead of commiting them
+            _connection?.Close();
+        }
+
+        //Dispose
+        public void Dispose()
+        {
+            CommitTransaction();
+        }
+        
     }
 }
