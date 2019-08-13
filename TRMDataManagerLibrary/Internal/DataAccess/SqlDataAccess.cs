@@ -52,6 +52,7 @@ namespace TRMDataManagerLibrary.Internal.DataAccess
             _connection = new SqlConnection(connectionString);
             _connection.Open();
             _transaction = _connection.BeginTransaction();
+            isClosed = false;
         }
 
         //Load using the transaction
@@ -70,11 +71,14 @@ namespace TRMDataManagerLibrary.Internal.DataAccess
                 commandType: CommandType.StoredProcedure, transaction: _transaction);
         }
 
+        private bool isClosed = false;
+        
         //Close connection/stop a successuful transaction method
         public void CommitTransaction()
         {
             _transaction?.Commit();
             _connection?.Close();
+            isClosed = true;
         }
 
         //Close connection/stop a failed transaction
@@ -82,12 +86,25 @@ namespace TRMDataManagerLibrary.Internal.DataAccess
         {
             _transaction?.Rollback(); //erases changes instead of commiting them
             _connection?.Close();
+            isClosed = true;
         }
 
         //Dispose
         public void Dispose()
         {
-            CommitTransaction();
+            if(!isClosed)
+            {
+                try
+                {
+                    CommitTransaction();
+                }
+                catch 
+                {
+                    //TODO - Log
+                } 
+            }
+            _transaction = null;
+            _connection = null;
         }
         
     }

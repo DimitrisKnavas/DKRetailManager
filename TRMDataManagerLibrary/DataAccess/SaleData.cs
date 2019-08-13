@@ -79,8 +79,7 @@ namespace TRMDataManagerLibrary.DataAccess
 
                     }
 
-                    //throws exception sqltransaction has completed;it is no longer usable
-                    //sql.CommitTransaction(); //using statement can also take care of doing it at the close of curly bracket
+                    sql.CommitTransaction(); //using statement can also take care of doing it at the close of curly bracket
                 }
                 catch
                 {
