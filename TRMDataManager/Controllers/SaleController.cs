@@ -22,5 +22,12 @@ namespace TRMDataManager.Controllers
             data.SaveSale(sale, userId, details);
 
         }
+
+        [Route("GetSalesReport")]
+        public List<SaleReportModel> GetSalesReport()
+        {
+            SaleData data = new SaleData();
+            return data.GetSaleReport();
+        }
     }
 }
